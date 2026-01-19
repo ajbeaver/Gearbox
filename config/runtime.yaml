@@ -1,0 +1,83 @@
+runtime:
+  # -------------------------------------------------------------------
+  # Execution authority
+  # -------------------------------------------------------------------
+  #
+  # Execution mode:
+  #   observe -> read-only, no orders ever placed
+  #   paper   -> simulated execution, no real funds
+  #   live    -> real execution with real funds
+  #
+  # NOTE: Setting mode to "live" alone is NOT sufficient to trade.
+  #       execution_enabled must also be explicitly set to true.
+  mode: observe
+  #
+  # Master execution switch.
+  # If false, the system must refuse to place orders regardless of mode.
+  # This exists to prevent accidental live runs.
+  execution_enabled: false
+  #
+  # -------------------------------------------------------------------
+  # Scope control
+  # -------------------------------------------------------------------
+  #
+  # Chain identifiers the system is allowed to interact with.
+  # These use canonical names and are resolved to chain IDs in code.
+  # Any chain not listed here must be ignored entirely.
+  allowed_chains:
+    - ethereum
+    # - solana
+    # - arbitrum
+    # - base
+    # - optimism
+  #
+  # -------------------------------------------------------------------
+  # Fee / gas sensitivity
+  # -------------------------------------------------------------------
+  #
+  # Minimum expected net gain (percentage) required to justify a trade
+  # after fees are considered.
+  min_expected_gain_pct: 1.5
+  #
+  # Whether fee conditions may block otherwise valid trades.
+  respect_fees: true
+  #
+  # -------------------------------------------------------------------
+  # Autonomy & discovery permissions
+  # -------------------------------------------------------------------
+  #
+  # Whether the system is allowed to scan markets, evaluate pairs,
+  # and collect observational data beyond its current positions.
+  # This does NOT imply permission to trade.
+  allow_discovery: true
+  #
+  # Whether the agent is allowed to switch strategies during a run.
+  # If false, the agent may evaluate and recommend, but automation
+  # must refuse strategy changes.
+  allow_strategy_switching: false
+  #
+  # -------------------------------------------------------------------
+  # Runtime behavior
+  # -------------------------------------------------------------------
+  #
+  # Time between evaluation cycles, in seconds.
+  # Lower values increase responsiveness but also noise and risk.
+  evaluation_interval_sec: 30
+  #
+  # Maximum runtime duration in seconds.
+  # A value of 0 means run indefinitely until halted by risk or user.
+  max_runtime_sec: 0
+  #
+  # -------------------------------------------------------------------
+  # Safety & control
+  # -------------------------------------------------------------------
+  #
+  # Whether the system should refuse to start on any validation warning.
+  # If true, all validation issues are treated as hard failures.
+  # This is recommended for unattended or live runs.
+  strict_validation: true
+  #
+  # Future control surfaces (disabled by default)
+  # emergency_halt_enabled: true     # allow external halt signals
+  # require_manual_confirm: true     # prompt before entering live mode
+  # heartbeat_interval_sec: 30       # watchdog / liveness checks

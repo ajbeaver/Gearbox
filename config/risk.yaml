@@ -1,0 +1,48 @@
+risk:
+  # -------------------------------------------------------------------
+  # Global risk limits
+  # -------------------------------------------------------------------
+  #
+  # This file defines non-negotiable risk boundaries.
+  # These limits are enforced deterministically by automation and
+  # cannot be overridden by the agent, strategy, or runtime mode.
+  #
+  # If any of these limits are breached, the system must refuse
+  # further execution or halt entirely, depending on context.
+  #
+  # All percentages are relative to total account equity.
+  # Maximum allowed loss from peak equity before the system must halt.
+  # This represents the worst-case drawdown the system is permitted
+  # to experience over its entire lifetime or session.
+  #
+  # Example:
+  #   If equity peaks at $100,000 and this is set to 20,
+  #   trading must halt once equity falls to $80,000.
+  max_drawdown_pct: 20
+  #
+  # Maximum total loss allowed within a rolling 24-hour window.
+  # This limit exists to prevent rapid compounding losses during
+  # extreme volatility or unfavorable market conditions.
+  #
+  # Breaching this limit should trigger a pause or halt, even if
+  # overall drawdown limits have not yet been reached.
+  daily_loss_pct: 5
+  #
+  # Maximum loss allowed on any single trade, relative to total equity.
+  # This caps the damage of individual execution mistakes or sudden
+  # market moves and prevents one trade from dominating risk.
+  #
+  # This limit is evaluated per trade, before and after execution.
+  max_trade_loss_pct: 2
+  #
+  # Maximum percentage of total equity that may be allocated to a
+  # single open position at any given time.
+  #
+  # This prevents overexposure to a single asset or correlated move,
+  # regardless of strategy confidence.
+  max_position_pct: 10
+  #
+  # Maximum number of concurrent open positions allowed.
+  # This limits overall exposure complexity and reduces the risk
+  # of hidden correlation across multiple positions.
+  max_concurrent_positions: 3

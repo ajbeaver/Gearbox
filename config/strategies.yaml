@@ -1,0 +1,84 @@
+strategies:
+  # -------------------------------------------------------------------
+  # Strategy permissions & constraints
+  # -------------------------------------------------------------------
+  #
+  # This file defines what kinds of trading behavior are allowed.
+  # It does NOT define concrete strategies, indicators, or parameters.
+  #
+  # These settings constrain the agent’s freedom when selecting,
+  # evaluating, or switching strategies. They are static, human-defined,
+  # and immutable during a run.
+  #
+  # If a proposed strategy violates any of these constraints,
+  # automation must refuse execution regardless of agent confidence.
+  #
+  # -------------------------------------------------------------------
+  # Allowed strategy classes
+  # -------------------------------------------------------------------
+  #
+  # High-level categories of behavior the agent is permitted to use.
+  # These are conceptual classes, not implementations.
+  #
+  # The agent may only choose strategies that fall within these classes.
+  allowed_classes:
+    - trend_following
+    - mean_reversion
+    - range_bound
+    # - breakout              # momentum-based moves beyond established ranges
+    # - scalping              # very short-term trades; requires low-latency execution
+    # - event_driven          # reacts to discrete events (listings, news, unlocks)
+    # - arbitrage             # price discrepancies across venues; infra-heavy
+    # - liquidity_provision   # market making / passive liquidity strategies
+    # - carry                 # yield / funding / basis strategies
+    # - volatility            # variance-focused strategies (options-like behavior)
+  #
+  # -------------------------------------------------------------------
+  # Allowed time horizons
+  # -------------------------------------------------------------------
+  #
+  # Time horizons the agent may operate within.
+  # This constrains holding periods and signal frequency.
+  #
+  # Examples:
+  #   short_term  -> minutes to hours
+  #   intraday    -> within a single trading day
+  #   swing       -> days to weeks
+  allowed_horizons:
+    - intraday
+    - swing
+    # - short_term   # minutes-scale holding periods; fee and latency sensitive
+    # - position     # weeks to months; requires long-lived state handling
+  #
+  # -------------------------------------------------------------------
+  # Strategy switching constraints
+  # -------------------------------------------------------------------
+  #
+  # These limits prevent excessive strategy churn (“thrashing”)
+  # and enforce a minimum evaluation period before changes are allowed.
+  switching:
+    # Minimum time (in seconds) a strategy must remain active
+    # before the agent is allowed to switch to another.
+    min_dwell_time_sec: 3600
+    #
+    # Maximum number of strategy switches allowed within a 24-hour window.
+    max_switches_per_day: 3
+    # cooldown_after_loss_sec: 1800   # pause strategy switching after a loss
+    # require_confirmations: true     # require multiple evaluations before switching
+  #
+  # -------------------------------------------------------------------
+  # Data source permissions
+  # -------------------------------------------------------------------
+  #
+  # High-level constraints on what types of data the agent may use
+  # when evaluating or selecting strategies.
+  #
+  # These are trust boundaries, not indicator definitions.
+  data_sources:
+    allow_price_data: true
+    allow_volume_data: true
+    allow_onchain_data: false
+    allow_external_sentiment: false
+    # allow_orderbook_data: false     # requires high-quality order book feeds
+    # allow_derivative_metrics: false # funding rates, open interest, IV
+    # allow_social_data: false        # twitter, telegram, forum sentiment
