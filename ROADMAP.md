@@ -19,7 +19,7 @@ Delivered:
 • Runtime loop with heartbeat and scheduling  
 • Clear separation of config, runtime, and engines  
 
-Outcome:
+**Outcome:**
 A stable process lifecycle that can run indefinitely, fail loudly, and be reasoned about.
 
 ---
@@ -28,7 +28,7 @@ A stable process lifecycle that can run indefinitely, fail loudly, and be reason
 
 **Goal:** Prove the system can observe the real world truthfully.
 
-Delivered:
+**Delivered:**
 • Structured YAML configuration (`runtime`, `risk`, `strategies`, `chain`)  
 • Strict config validation before runtime  
 • Config-driven chain and network resolution  
@@ -36,28 +36,30 @@ Delivered:
 • Real Ethereum RPC observation (`eth_chainId`)  
 • Clear logging of reachability and failures  
 
-Outcome:
+**Outcome:**
 A live observation pipeline with no trading, no risk, and no ambiguity.
 
 ---
 
 ## Phase 2 — Runtime State & Health
 
-**Goal:** Remember what has happened and react safely.
+**Goal:** Give the runtime awareness of its own stability and recent history.
 
-Scope:
-• Accumulate observation results into runtime state  
-• Track last success, last failure, consecutive failures  
-• Distinguish transient vs persistent chain issues  
-• Define when observation failures should pause or halt runtime  
+**Delivered:**
+• Introduced a first-class runtime health object (`RuntimeHealth`)
+• Tracked per-tick success and failure deterministically
+• Maintained constant-size health state (no unbounded memory growth)
+• Recorded last success, last failure, and consecutive failures
+• Distinguished transient vs persistent failures via counters
+• Computed pause and halt eligibility without altering control flow
+• Exposed structured health snapshots for logging and diagnostics
+• Integrated health introspection cleanly into the runtime loop
+• Centralized all health-related logging through the CLI
 
-Non-goals:
-• No market data yet  
-• No trading logic  
-• No persistence across restarts  
-
-Outcome:
-The system understands *history*, not just the current tick.
+**Outcome:**
+The system understands recent operational history and can reliably
+identify degraded or unsafe runtime conditions without yet enforcing
+behavioral changes.
 
 ---
 

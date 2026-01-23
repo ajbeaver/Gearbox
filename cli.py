@@ -7,6 +7,7 @@ import argparse
 from pathlib import Path
 from gearbox.validate import validate
 from gearbox.engine.market_data import evaluate_chain
+from gearbox.health import RuntimeHealth
 
 BANNER = r"""
 #########################################################
@@ -100,6 +101,7 @@ def initialize():
     logging.info("Initialization complete")
 
 def run(validated_config):
+    health = RuntimeHealth()
     runtime_cfg = validated_config["parsed"]["runtime.yaml"]["runtime"]
 
     evaluation_interval = runtime_cfg["evaluation_interval_sec"]
@@ -126,22 +128,36 @@ def run(validated_config):
 
         logging.info("Evaluation phase started")
 
+        evaluation_failed = False
+        failure_reason = None
+
         allowed_chains = runtime_cfg.get("allowed_chains", [])
         chain_defs = validated_config["parsed"]["chain.yaml"]["chains"]
 
         for chain_name in allowed_chains:
-            if chain_name not in chain_defs:
-                logging.warning(
-                    f"Allowed chain '{chain_name}' not found in chain.yaml"
-                )
-                continue
-
             result = evaluate_chain(chain_name, chain_defs[chain_name])
 
             if result["reachable"]:
                 logging.info(f"Chain reachable: {result}")
             else:
                 logging.warning(f"Chain unreachable: {result}")
+                evaluation_failed = True
+                failure_reason = f"Chain unreachable: {chain_name}"
+
+        if evaluation_failed:
+            health.record_failure(failure_reason)
+            logging.warning("Runtime health degraded due to evaluation failure")
+        else:
+            health.record_success()
+            logging.info("Runtime health OK")
+
+        if health.should_pause():
+            logging.warning("Health pause condition met")
+
+        if health.should_halt():
+            logging.error("Health halt condition met")
+
+        logging.info(f"Health snapshot: {health.snapshot()}")
 
         logging.info("Evaluation phase complete")
 
