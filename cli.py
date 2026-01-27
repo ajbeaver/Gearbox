@@ -25,7 +25,7 @@ BANNER = r"""
 """
 
 # Constants
-VERSION = "0.2.0"
+VERSION = "0.2.3"
 LOGDIR = "./logs"
 CONFIGDIR = "./config"
 
@@ -151,11 +151,32 @@ def run(validated_config):
             health.record_success()
             logging.info("Runtime health OK")
 
-        if health.should_pause():
-            logging.warning("Health pause condition met")
-
+        # Enforce runtime health decisions
         if health.should_halt():
-            logging.error("Health halt condition met")
+            health.enter_halt()
+            logging.error("Health halt condition met — halting runtime")
+            logging.info(f"Final health snapshot: {health.snapshot()}")
+            print("[!] Runtime halted due to health failure. See log for details.")
+            break
+
+        if health.should_pause():
+            health.enter_pause()
+            logging.warning("Health pause condition met — entering paused state")
+            logging.info(f"Paused health snapshot: {health.snapshot()}")
+            print("[!] Runtime paused due to health degradation.")
+            pause_interval = evaluation_interval * 2
+            logging.info(f"Paused — sleeping for {pause_interval}s before recheck")
+            time.sleep(pause_interval)
+            # Pause loop: continue heartbeats, skip evaluation
+            try:
+                time.sleep(pause_interval)
+            except KeyboardInterrupt:
+                logging.info("Runtime interrupted by user during pause")
+                print("[!] Runtime interrupted by user.")
+                break
+
+            # Skip remainder of loop and re-evaluate health next tick
+            continue
 
         logging.info(f"Health snapshot: {health.snapshot()}")
 

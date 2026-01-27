@@ -28,6 +28,8 @@ class RuntimeHealth:
         self.consecutive_failures = 0
         self.last_error = None
         self.healthy = True
+        if self.paused:
+            self.clear_pause()
 
     def record_failure(self, error_msg: str):
         """Call when an evaluation cycle fails."""
@@ -56,6 +58,22 @@ class RuntimeHealth:
         """
         # Halt after sustained consecutive failures
         return self.consecutive_failures >= 10
+
+    def enter_pause(self):
+        """Set the runtime to paused state."""
+        self.paused = True
+        self.healthy = False
+
+    def clear_pause(self):
+        """Clear the paused state and mark as healthy."""
+        self.paused = False
+        self.healthy = True
+
+    def enter_halt(self):
+        """Set the runtime to halted state."""
+        self.halted = True
+        self.healthy = False
+        self.paused = False
 
     def snapshot(self) -> dict:
         """Return a lightweight summary for logging."""
