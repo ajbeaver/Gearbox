@@ -63,23 +63,57 @@ behavioral changes.
 
 ---
 
-## Phase 3 — Market Primitives
+Phase 3 — Chain Orientation (ON-CHAIN PRIMITIVES)
 
-**Goal:** Observe markets, not just chains.
+Goal:
+Collect deterministic, execution-relevant data directly from the chain RPC.
+This phase answers: “Where am I on-chain right now?”
 
 Scope:
-• Read-only market snapshots (price, volume, block height)  
-• Deterministic data fetching interfaces  
-• Clear separation between observation and interpretation  
-• Config-driven selection of observable markets  
+• Query RPC endpoints for universally supported on-chain primitives
+• Extract only data that is guaranteed to exist on standard Ethereum RPCs
+• Produce a single per-tick chain orientation snapshot
+• Integrate orientation results into the existing runtime evaluation loop
+• Degrade runtime health on orientation failure
 
-Non-goals:
-• No strategy selection  
-• No execution  
-• No optimization  
+Allowed RPC Methods (Ethereum):
+• eth_blockNumber
+• eth_getBlockByNumber ("latest")
+• eth_gasPrice (or EIP-1559 equivalent if available)
+
+Snapshot Fields (exact, required):
+• chain
+• network
+• rpc
+• block_height
+• block_timestamp
+• gas_price
+• observed_at (ISO 8601 UTC)
+• success
+• failure_reason
+
+Constraints:
+• No market data (price, volume, symbols)
+• No oracles
+• No execution
+• No fallback logic yet
+• Success is defined strictly by successful RPC responses
+• All fields must come directly from the RPC
+
+Files to Modify:
+• gearbox/engine/chain_orientation.py (new)
+• cli.py (wire orientation into evaluation phase)
+• gearbox/validate.py (validate orientation config only)
+
+Files Explicitly Out of Scope:
+• market_data.py
+• strategy logic
+• execution logic
+• risk evaluation
 
 Outcome:
-Agents and risk logic can reason about market conditions using trusted data.
+The runtime has a truthful, reproducible view of current on-chain state
+sufficient to reason about execution cost and temporal alignment.
 
 ---
 
