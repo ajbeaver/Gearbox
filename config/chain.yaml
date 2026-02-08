@@ -22,7 +22,8 @@ chains:
         # Multiple endpoints allow redundancy and failover in code.
         rpc_endpoints:
           # - https://rpc.ankr.com/eth
-          - https://cloudflare-eth.com
+          # - https://cloudflare-eth.com
+          - https://ethereum.publicnode.com
       # ---------------------------------------------------------------
       # Ethereum Sepolia Testnet (non-production)
       # ---------------------------------------------------------------

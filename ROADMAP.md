@@ -63,57 +63,22 @@ behavioral changes.
 
 ---
 
-Phase 3 — Chain Orientation (ON-CHAIN PRIMITIVES)
+## Phase 3 — Chain Orientation (ON-CHAIN PRIMITIVES)
 
-Goal:
-Collect deterministic, execution-relevant data directly from the chain RPC.
-This phase answers: “Where am I on-chain right now?”
+Status: LOCKED
 
-Scope:
-• Query RPC endpoints for universally supported on-chain primitives
-• Extract only data that is guaranteed to exist on standard Ethereum RPCs
-• Produce a single per-tick chain orientation snapshot
-• Integrate orientation results into the existing runtime evaluation loop
-• Degrade runtime health on orientation failure
+**Goal:** Collect deterministic, execution-relevant data directly from the chain RPC.
 
-Allowed RPC Methods (Ethereum):
-• eth_blockNumber
-• eth_getBlockByNumber ("latest")
-• eth_gasPrice (or EIP-1559 equivalent if available)
+**Delivered:**
+• New chain orientation engine producing a single per-tick snapshot  
+• RPC primitives only: eth_chainId, eth_blockNumber, eth_getBlockByNumber ("latest"), eth_gasPrice  
+• Snapshot fields: chain, network, rpc, block_height, block_timestamp, gas_price, observed_at (UTC), success, failure_reason  
+• Orientation integrated into the runtime evaluation loop alongside reachability checks  
+• Runtime health degrades on orientation failure with explicit logging  
 
-Snapshot Fields (exact, required):
-• chain
-• network
-• rpc
-• block_height
-• block_timestamp
-• gas_price
-• observed_at (ISO 8601 UTC)
-• success
-• failure_reason
-
-Constraints:
-• No market data (price, volume, symbols)
-• No oracles
-• No execution
-• No fallback logic yet
-• Success is defined strictly by successful RPC responses
-• All fields must come directly from the RPC
-
-Files to Modify:
-• gearbox/engine/chain_orientation.py (new)
-• cli.py (wire orientation into evaluation phase)
-• gearbox/validate.py (validate orientation config only)
-
-Files Explicitly Out of Scope:
-• market_data.py
-• strategy logic
-• execution logic
-• risk evaluation
-
-Outcome:
-The runtime has a truthful, reproducible view of current on-chain state
-sufficient to reason about execution cost and temporal alignment.
+**Outcome:**
+The runtime has a truthful, reproducible view of current on-chain state sufficient
+to reason about execution cost and temporal alignment.
 
 ---
 

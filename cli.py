@@ -7,6 +7,7 @@ import argparse
 from pathlib import Path
 from gearbox.validate import validate
 from gearbox.engine.market_data import evaluate_chain
+from gearbox.engine.chain_orientation import collect_chain_orientation
 from gearbox.health import RuntimeHealth
 
 BANNER = r"""
@@ -25,7 +26,7 @@ BANNER = r"""
 """
 
 # Constants
-VERSION = "0.2.3"
+VERSION = "0.3.1"
 LOGDIR = "./logs"
 CONFIGDIR = "./config"
 
@@ -139,6 +140,13 @@ def run(validated_config):
 
             if result["reachable"]:
                 logging.info(f"Chain reachable: {result}")
+                orientation = collect_chain_orientation(chain_name, chain_defs[chain_name])
+                if orientation["success"]:
+                    logging.info(f"Chain orientation: {orientation}")
+                else:
+                    logging.warning(f"Chain orientation failed: {orientation}")
+                    evaluation_failed = True
+                    failure_reason = f"Chain orientation failed: {chain_name}"
             else:
                 logging.warning(f"Chain unreachable: {result}")
                 evaluation_failed = True
