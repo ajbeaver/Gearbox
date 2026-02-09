@@ -82,71 +82,46 @@ to reason about execution cost and temporal alignment.
 
 ---
 
-## Phase 4 — Risk Enforcement
+## Phase 4 — Oracle Ingestion (Read-Only)
 
-**Goal:** Enforce non-negotiable safety constraints.
-
-Scope:
-• Runtime enforcement of `risk.yaml` limits  
-• Drawdown tracking  
-• Loss-based halts and pauses  
-• Safety-first failure modes  
-
-Non-goals:
-• No trading yet  
-• No strategy logic  
-
-Outcome:
-The system refuses to harm itself regardless of agent behavior.
-
----
-
-## Phase 5 — Agent Reasoning
-
-**Goal:** Allow adaptive strategy selection without execution authority.
+Goal:
+Introduce a non-chain data source and prove we can retrieve external price data deterministically.
 
 Scope:
-• Agent evaluates market + runtime state  
-• Agent proposes strategies or mode changes  
-• Automation validates proposals against risk and config  
-• No direct execution power  
+• Connect to a single oracle provider (one source only)
+• Fetch a spot price for a single asset (e.g. ETH-USD)
+• Capture oracle response metadata alongside the value
+• Return oracle data without interpretation or validation
+• Log oracle reachability, latency, and failures
+• Treat oracle output as a claim, not a truth
 
-Non-goals:
-• No wallet access  
-• No order placement  
+Constraints:
+• Read-only only — no trading, no execution
+• No comparison against chain data yet
+• No aggregation or averaging
+• No fallback or redundancy
+• No strategy logic
+• No health coupling beyond basic success/failure logging
+
+Delivered Artifacts:
+• Oracle engine module (new file)
+• Deterministic oracle snapshot structure:
+  – asset
+  – price
+  – source
+  – observed_at
+  – success
+  – failure_reason
+• CLI wiring to fetch oracle data once per evaluation tick
+• Logging consistent with existing runtime + health systems
+
+Non-Goals:
+• No oracle trust scoring
+• No reconciliation with block data
+• No confidence thresholds
+• No execution gating
+• No caching or smoothing
 
 Outcome:
-Intelligence without authority.
-
+The system can retrieve external price data on demand, represent it as an explicit claim, and observe failures cleanly — setting the stage for chain-oracle reconciliation in Phase 5.
 ---
-
-## Phase 6 — Execution (Opt-in)
-
-**Goal:** Deterministic action within strict boundaries.
-
-Scope:
-• Explicit opt-in execution modes  
-• Wallet and signing isolation  
-• Deterministic order placement  
-• Full audit logging  
-
-Non-goals:
-• No implicit trading  
-• No hidden automation  
-
-Outcome:
-A controlled system that can act — but only when explicitly allowed.
-
----
-
-## Guiding principles
-
-• Observation before action  
-• Determinism before intelligence  
-• Safety before performance  
-• Logs over dashboards  
-• Boring systems that fail loudly  
-
----
-
-End of roadmap.
