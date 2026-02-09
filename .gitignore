@@ -40,3 +40,9 @@ htmlcov/
 *.tmp
 *.swp
 *.bak
+
+# -----------------------------
+# Authentication tokens and secrets
+# -----------------------------
+.env
+*.key
