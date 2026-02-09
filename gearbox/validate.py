@@ -7,6 +7,7 @@ def validate(config_dir):
         "runtime.yaml",
         "strategies.yaml",
         "chain.yaml",
+        "oracle.yaml",
     ]
 
     parsed = {}
@@ -199,6 +200,42 @@ def validate(config_dir):
                                 errors.append(
                                     f"chain.yaml chain '{chain_name}' network '{net_name}' must define 'chain_id' (int) or 'cluster' (str)"
                                 )
+
+    if "oracle.yaml" in parsed:
+        data = parsed["oracle.yaml"]
+        if not isinstance(data, dict):
+            errors.append("oracle.yaml must contain a YAML mapping at the top level")
+        elif "oracle" not in data:
+            errors.append("oracle.yaml missing required top-level key: 'oracle'")
+        else:
+            oracle = data["oracle"]
+            if not isinstance(oracle, dict):
+                errors.append("oracle.yaml 'oracle' must be a mapping")
+            else:
+                required_fields = {
+                    "provider": str,
+                    "endpoint_url": str,
+                    "asset_pair": str,
+                    "timeout_sec": int,
+                }
+
+                for field, expected_type in required_fields.items():
+                    if field not in oracle:
+                        errors.append(f"oracle.yaml missing required field: '{field}'")
+                    elif not isinstance(oracle[field], expected_type):
+                        errors.append(
+                            f"oracle.yaml field '{field}' must be of type {expected_type}"
+                        )
+
+                provider = oracle.get("provider")
+                if provider is not None and provider != "coinbase":
+                    errors.append("oracle.yaml field 'provider' must be 'coinbase'")
+
+                endpoint_url = oracle.get("endpoint_url")
+                if isinstance(endpoint_url, str) and "{asset_pair}" not in endpoint_url:
+                    errors.append(
+                        "oracle.yaml field 'endpoint_url' must include '{asset_pair}'"
+                    )
 
     return {
         "ok": len(errors) == 0,

@@ -8,6 +8,7 @@ from pathlib import Path
 from gearbox.validate import validate
 from gearbox.engine.market_data import evaluate_chain
 from gearbox.engine.chain_orientation import collect_chain_orientation
+from gearbox.engine.oracle import collect_oracle_snapshot
 from gearbox.health import RuntimeHealth
 
 BANNER = r"""
@@ -104,6 +105,7 @@ def initialize():
 def run(validated_config):
     health = RuntimeHealth()
     runtime_cfg = validated_config["parsed"]["runtime.yaml"]["runtime"]
+    oracle_cfg = validated_config["parsed"]["oracle.yaml"]["oracle"]
 
     evaluation_interval = runtime_cfg["evaluation_interval_sec"]
     max_runtime = runtime_cfg["max_runtime_sec"]
@@ -151,6 +153,12 @@ def run(validated_config):
                 logging.warning(f"Chain unreachable: {result}")
                 evaluation_failed = True
                 failure_reason = f"Chain unreachable: {chain_name}"
+
+        oracle_snapshot = collect_oracle_snapshot(oracle_cfg)
+        if oracle_snapshot["success"]:
+            logging.info(f"Oracle snapshot: {oracle_snapshot}")
+        else:
+            logging.warning(f"Oracle snapshot failed: {oracle_snapshot}")
 
         if evaluation_failed:
             health.record_failure(failure_reason)

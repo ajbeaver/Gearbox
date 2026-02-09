@@ -44,6 +44,9 @@ These files are validated before runtime starts.
 • `strategies.yaml`  
   Defines allowed strategy classes and constraints (not yet executed).
 
+• `oracle.yaml`  
+  Defines oracle provider settings and the asset pair for oracle ingestion.
+
 No code runs until all configs pass validation.
 
 ---

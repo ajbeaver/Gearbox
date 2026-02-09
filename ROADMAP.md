@@ -84,44 +84,30 @@ to reason about execution cost and temporal alignment.
 
 ## Phase 4 — Oracle Ingestion (Read-Only)
 
-Goal:
-Introduce a non-chain data source and prove we can retrieve external price data deterministically.
+Status: LOCKED
 
-Scope:
-• Connect to a single oracle provider (one source only)
-• Fetch a spot price for a single asset (e.g. ETH-USD)
-• Capture oracle response metadata alongside the value
-• Return oracle data without interpretation or validation
-• Log oracle reachability, latency, and failures
-• Treat oracle output as a claim, not a truth
+**Goal:**  
+Introduce a single external oracle and prove the system can retrieve off-chain price data deterministically.
 
-Constraints:
-• Read-only only — no trading, no execution
-• No comparison against chain data yet
-• No aggregation or averaging
-• No fallback or redundancy
-• No strategy logic
-• No health coupling beyond basic success/failure logging
+**Delivered:**  
+• New oracle engine producing one snapshot per evaluation tick  
+• Single oracle provider (Coinbase spot price, unauthenticated)  
+• Single asset pair defined explicitly in `oracle.yaml`  
+• Snapshot fields: asset, price (string), source, observed_at (UTC), source_timestamp (UTC), latency_ms, success, failure_reason  
+• Oracle ingestion wired into the runtime evaluation loop  
+• Explicit logging of oracle success, latency, and failure reasons  
+• Oracle failures logged without degrading RuntimeHealth  
 
-Delivered Artifacts:
-• Oracle engine module (new file)
-• Deterministic oracle snapshot structure:
-  – asset
-  – price
-  – source
-  – observed_at
-  – success
-  – failure_reason
-• CLI wiring to fetch oracle data once per evaluation tick
-• Logging consistent with existing runtime + health systems
+**Constraints:**  
+• Read-only only — no trading, no execution  
+• No comparison against chain data  
+• No aggregation, averaging, or smoothing  
+• No redundancy or fallback providers  
+• No strategy logic  
+• No execution gating  
 
-Non-Goals:
-• No oracle trust scoring
-• No reconciliation with block data
-• No confidence thresholds
-• No execution gating
-• No caching or smoothing
+**Outcome:**  
+The runtime can retrieve external price data on demand, represent it as an explicit claim with provenance and timing metadata, and observe oracle failures cleanly — without assuming correctness or enforcing behavior.  
+This establishes the foundation for chain-oracle reconciliation in Phase 5.
 
-Outcome:
-The system can retrieve external price data on demand, represent it as an explicit claim, and observe failures cleanly — setting the stage for chain-oracle reconciliation in Phase 5.
 ---

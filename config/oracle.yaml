@@ -1,0 +1,5 @@
+oracle:
+  provider: coinbase
+  endpoint_url: "https://api.coinbase.com/v2/prices/{asset_pair}/spot"
+  asset_pair: "ETH-USD"
+  timeout_sec: 5
