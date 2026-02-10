@@ -3,6 +3,16 @@ def reconcile(chain_snapshot: dict, oracle_snapshot: dict, cfg: dict) -> dict:
 
     chain_epoch = chain_snapshot.get("timestamp_epoch")
     oracle_epoch = oracle_snapshot.get("timestamp_epoch")
+    oracle_success = oracle_snapshot.get("success", False)
+
+    if not oracle_success:
+        return {
+            "chain_timestamp_epoch": chain_epoch,
+            "oracle_timestamp_epoch": oracle_epoch,
+            "delta_sec": None,
+            "status": "unavailable",
+            "reason": "oracle_unavailable",
+        }
 
     if (
         max_time_skew_sec is None

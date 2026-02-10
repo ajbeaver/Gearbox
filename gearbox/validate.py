@@ -122,6 +122,16 @@ def validate(config_dir):
                         "runtime.yaml health field 'pause_interval_multiplier' must be of type int"
                     )
 
+            allowed_chains = runtime.get("allowed_chains")
+            if isinstance(allowed_chains, list):
+                chain_defs = parsed.get("chain.yaml", {}).get("chains", {})
+                if isinstance(chain_defs, dict):
+                    for chain_name in allowed_chains:
+                        if chain_name not in chain_defs:
+                            errors.append(
+                                f"runtime.yaml allowed_chains references undefined chain: '{chain_name}'"
+                            )
+
     if "strategies.yaml" in parsed:
         data = parsed["strategies.yaml"]
         if not isinstance(data, dict):

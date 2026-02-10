@@ -191,7 +191,11 @@ def run(validated_config):
             reconciliation = reconcile(last_chain_snapshot, oracle_snapshot, reconciliation_cfg)
             logging.info("Reconciliation", extra={"data": reconciliation})
             if reconciliation["status"] == "degraded":
-                health.record_warning("oracle_time_skew")
+                evaluation_failed = True
+                failure_reason = "degraded"
+            elif reconciliation["status"] == "unavailable":
+                evaluation_failed = True
+                failure_reason = "unavailable"
 
         if evaluation_failed:
             health.record_failure(failure_reason)
