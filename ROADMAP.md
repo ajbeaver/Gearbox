@@ -137,3 +137,17 @@ Determine whether external oracle data is temporally consistent with on-chain st
 The runtime can explicitly detect and measure temporal disagreement between on-chain truth and external oracle claims, exposing this as a first-class signal while preserving full operational continuity.
 
 ---
+
+## Maintenance — Config-Driven Operational Thresholds (CLEANUP)
+
+**Goal:**  
+Remove hardcoded operational thresholds in favor of structured configuration.
+
+**Delivered:**  
+• Runtime health thresholds (pause/halt) are config-driven  
+• Pause interval multiplier is config-driven  
+• Per-network RPC timeouts are config-driven  
+• Validation enforces new config entries  
+
+**Outcome:**  
+Operational behavior is fully parameterized by config without changing runtime logic.

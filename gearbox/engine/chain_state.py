@@ -2,7 +2,7 @@ import datetime
 import requests
 
 
-def _rpc_call(rpc, method, params):
+def _rpc_call(rpc, method, params, timeout_sec: int):
     payload = {
         "jsonrpc": "2.0",
         "method": method,
@@ -10,7 +10,7 @@ def _rpc_call(rpc, method, params):
         "id": 1,
     }
 
-    response = requests.post(rpc, json=payload, timeout=5)
+    response = requests.post(rpc, json=payload, timeout=timeout_sec)
     response.raise_for_status()
 
     data = response.json()
@@ -43,6 +43,7 @@ def collect_chain_orientation(chain_name, chain_cfg):
 
     network_cfg = networks[network_name]
     rpc_endpoints = network_cfg.get("rpc_endpoints", [])
+    rpc_timeout_sec = network_cfg.get("rpc_timeout_sec")
 
     if not rpc_endpoints:
         snapshot["failure_reason"] = "eth_chainId"
@@ -52,19 +53,19 @@ def collect_chain_orientation(chain_name, chain_cfg):
     snapshot["rpc"] = rpc
 
     try:
-        _rpc_call(rpc, "eth_chainId", [])
+        _rpc_call(rpc, "eth_chainId", [], rpc_timeout_sec)
     except Exception:
         snapshot["failure_reason"] = "eth_chainId"
         return snapshot
 
     try:
-        block_number_hex = _rpc_call(rpc, "eth_blockNumber", [])
+        block_number_hex = _rpc_call(rpc, "eth_blockNumber", [], rpc_timeout_sec)
     except Exception:
         snapshot["failure_reason"] = "eth_blockNumber"
         return snapshot
 
     try:
-        block = _rpc_call(rpc, "eth_getBlockByNumber", ["latest", False])
+        block = _rpc_call(rpc, "eth_getBlockByNumber", ["latest", False], rpc_timeout_sec)
         if not isinstance(block, dict) or "timestamp" not in block:
             raise ValueError("invalid block response")
         block_timestamp_hex = block["timestamp"]

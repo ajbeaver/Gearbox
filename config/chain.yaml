@@ -18,6 +18,8 @@ chains:
         description: "Ethereum mainnet (production, real funds)"
         # Chain ID as defined by EIP-155
         chain_id: 1
+        # RPC timeout in seconds
+        rpc_timeout_sec: 5
         # RPC endpoints used for reading chain state and submitting transactions.
         # Multiple endpoints allow redundancy and failover in code.
         rpc_endpoints:
@@ -32,6 +34,8 @@ chains:
         description: "Ethereum Sepolia testnet (non-production)"
         # Chain ID for Sepolia
         chain_id: 11155111
+        # RPC timeout in seconds
+        rpc_timeout_sec: 5
         # Public RPC endpoints for Sepolia
         rpc_endpoints:
           - https://rpc.sepolia.org
@@ -53,6 +57,8 @@ chains:
         description: "Solana mainnet-beta (production, real funds)"
         # Solana cluster identifier
         cluster: mainnet-beta
+        # RPC timeout in seconds
+        rpc_timeout_sec: 5
         # RPC endpoints for Solana mainnet
         rpc_endpoints:
           - https://api.mainnet-beta.solana.com
@@ -64,6 +70,8 @@ chains:
         description: "Solana devnet (non-production)"
         # Solana cluster identifier
         cluster: devnet
+        # RPC timeout in seconds
+        rpc_timeout_sec: 5
         # RPC endpoints for Solana devnet
         rpc_endpoints:
           - https://api.devnet.solana.com

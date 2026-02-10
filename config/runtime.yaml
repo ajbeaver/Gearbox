@@ -85,6 +85,19 @@ runtime:
   # This is recommended for unattended or live runs.
   strict_validation: true
   #
+  # -------------------------------------------------------------------
+  # Runtime health thresholds
+  # -------------------------------------------------------------------
+  #
+  # These thresholds govern pause/halt behavior based on consecutive failures.
+  health:
+    # Enter paused state after this many consecutive evaluation failures.
+    pause_after_failures: 3
+    # Halt the runtime after this many consecutive evaluation failures.
+    halt_after_failures: 10
+    # Pause interval multiplier applied to evaluation_interval_sec.
+    pause_interval_multiplier: 2
+  #
   # Future control surfaces (disabled by default)
   # emergency_halt_enabled: true     # allow external halt signals
   # require_manual_confirm: true     # prompt before entering live mode

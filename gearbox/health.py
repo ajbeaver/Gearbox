@@ -2,7 +2,7 @@ import time
 
 
 class RuntimeHealth:
-    def __init__(self):
+    def __init__(self, pause_after_failures: int, halt_after_failures: int):
         # Timestamps
         self.start_time = time.time()
         self.last_success_ts = None
@@ -21,6 +21,10 @@ class RuntimeHealth:
         # Last error context (human readable)
         self.last_error = None
         self.last_warning = None
+
+        # Thresholds
+        self.pause_after_failures = pause_after_failures
+        self.halt_after_failures = halt_after_failures
 
     def record_success(self):
         """Call when an evaluation cycle succeeds."""
@@ -55,7 +59,7 @@ class RuntimeHealth:
         Pause is intended for persistent but potentially recoverable issues.
         """
         # Pause after a small number of consecutive failures
-        return self.consecutive_failures >= 3
+        return self.consecutive_failures >= self.pause_after_failures
 
     def should_halt(self) -> bool:
         """
@@ -65,7 +69,7 @@ class RuntimeHealth:
         or unsafe operating condition for this run.
         """
         # Halt after sustained consecutive failures
-        return self.consecutive_failures >= 10
+        return self.consecutive_failures >= self.halt_after_failures
 
     def enter_pause(self):
         """Set the runtime to paused state."""

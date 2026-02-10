@@ -18,6 +18,7 @@ def evaluate_chain(chain_name, chain_cfg):
     network_cfg = networks[network_name]
 
     rpc_endpoints = network_cfg.get("rpc_endpoints", [])
+    rpc_timeout_sec = network_cfg.get("rpc_timeout_sec")
     if not rpc_endpoints:
         return {
             "chain": chain_name,
@@ -38,7 +39,7 @@ def evaluate_chain(chain_name, chain_cfg):
             "id": 1,
         }
 
-        response = requests.post(rpc, json=payload, timeout=5)
+        response = requests.post(rpc, json=payload, timeout=rpc_timeout_sec)
         response.raise_for_status()
 
         data = response.json()

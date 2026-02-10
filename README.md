@@ -33,10 +33,12 @@ These files are validated before runtime starts.
 
 • `runtime.yaml`  
   Controls execution mode, allowed chains, evaluation interval, and safety flags.
+  Also defines runtime health thresholds (pause/halt) and pause interval behavior.
 
 • `chain.yaml`  
   Defines chains, networks, and RPC endpoints.  
-  Multiple RPCs may be listed; selection is deterministic.
+  Multiple RPCs may be listed; selection is deterministic.  
+  Per-network RPC timeouts are defined here.
 
 • `risk.yaml`  
   Defines non‑negotiable risk limits (not yet enforced in runtime).

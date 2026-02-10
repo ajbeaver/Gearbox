@@ -71,6 +71,7 @@ def validate(config_dir):
                 "max_runtime_sec": int,
                 "strict_validation": bool,
                 "reconciliation": dict,
+                "health": dict,
             }
 
             for field, expected_type in required_fields.items():
@@ -90,6 +91,35 @@ def validate(config_dir):
                 elif not isinstance(reconciliation["max_time_skew_sec"], int):
                     errors.append(
                         "runtime.yaml reconciliation field 'max_time_skew_sec' must be of type int"
+                    )
+
+            health = runtime.get("health")
+            if isinstance(health, dict):
+                if "pause_after_failures" not in health:
+                    errors.append(
+                        "runtime.yaml health missing required field: 'pause_after_failures'"
+                    )
+                elif not isinstance(health["pause_after_failures"], int):
+                    errors.append(
+                        "runtime.yaml health field 'pause_after_failures' must be of type int"
+                    )
+
+                if "halt_after_failures" not in health:
+                    errors.append(
+                        "runtime.yaml health missing required field: 'halt_after_failures'"
+                    )
+                elif not isinstance(health["halt_after_failures"], int):
+                    errors.append(
+                        "runtime.yaml health field 'halt_after_failures' must be of type int"
+                    )
+
+                if "pause_interval_multiplier" not in health:
+                    errors.append(
+                        "runtime.yaml health missing required field: 'pause_interval_multiplier'"
+                    )
+                elif not isinstance(health["pause_interval_multiplier"], int):
+                    errors.append(
+                        "runtime.yaml health field 'pause_interval_multiplier' must be of type int"
                     )
 
     if "strategies.yaml" in parsed:
@@ -203,6 +233,11 @@ def validate(config_dir):
                             if "rpc_endpoints" not in net_cfg or not isinstance(net_cfg["rpc_endpoints"], list):
                                 errors.append(
                                     f"chain.yaml chain '{chain_name}' network '{net_name}' missing or invalid 'rpc_endpoints'"
+                                )
+
+                            if "rpc_timeout_sec" not in net_cfg or not isinstance(net_cfg["rpc_timeout_sec"], int):
+                                errors.append(
+                                    f"chain.yaml chain '{chain_name}' network '{net_name}' missing or invalid 'rpc_timeout_sec'"
                                 )
 
                             if not (

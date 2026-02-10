@@ -122,10 +122,15 @@ def initialize():
     logging.info("Initialization complete")
 
 def run(validated_config):
-    health = RuntimeHealth()
     runtime_cfg = validated_config["parsed"]["runtime.yaml"]["runtime"]
     oracle_cfg = validated_config["parsed"]["oracle.yaml"]["oracle"]
     reconciliation_cfg = runtime_cfg.get("reconciliation", {})
+    health_cfg = runtime_cfg.get("health", {})
+
+    health = RuntimeHealth(
+        pause_after_failures=health_cfg["pause_after_failures"],
+        halt_after_failures=health_cfg["halt_after_failures"],
+    )
 
     evaluation_interval = runtime_cfg["evaluation_interval_sec"]
     max_runtime = runtime_cfg["max_runtime_sec"]
@@ -208,7 +213,7 @@ def run(validated_config):
             logging.warning("Health pause condition met — entering paused state")
             logging.info("Paused health snapshot", extra={"data": health.snapshot()})
             print("[!] Runtime paused due to health degradation.")
-            pause_interval = evaluation_interval * 2
+            pause_interval = evaluation_interval * health_cfg["pause_interval_multiplier"]
             logging.info(f"Paused — sleeping for {pause_interval}s before recheck")
             time.sleep(pause_interval)
             # Pause loop: continue heartbeats, skip evaluation
