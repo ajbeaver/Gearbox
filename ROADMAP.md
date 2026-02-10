@@ -111,3 +111,83 @@ The runtime can retrieve external price data on demand, represent it as an expli
 This establishes the foundation for chain-oracle reconciliation in Phase 5.
 
 ---
+
+## Phase 5 — Chain–Oracle Reconciliation (Trust Gating)
+
+Status: PLANNED
+
+**Goal:**  
+Determine whether externally sourced oracle data is *usable right now* by reconciling it against on-chain orientation data.
+
+This phase introduces the concept of **conditional trust** without enabling execution.
+
+---
+
+**Inputs:**
+• Chain orientation snapshot (Phase 3)  
+• Oracle snapshot (Phase 4)
+
+---
+
+**Delivered:**
+• New reconciliation step executed once per evaluation tick  
+• Deterministic comparison between chain and oracle data  
+• Explicit trust classification for oracle output  
+• Structured logging of reconciliation decisions and failures  
+
+---
+
+**Reconciliation Checks (Minimum Set):**
+• Oracle timestamp vs chain block timestamp  
+• Oracle staleness relative to chain time (configurable threshold)  
+• Oracle latency stability across ticks  
+• Price validity checks (non-null, non-zero, finite)  
+
+---
+
+**Outputs:**
+• Reconciled oracle state with explicit trust status:
+  – trusted
+  – degraded
+  – rejected
+• Reason codes explaining reconciliation outcomes  
+• No mutation of original chain or oracle snapshots  
+
+---
+
+**Behavioral Rules:**
+• Oracle data marked *rejected* must not be consumed by downstream logic  
+• Oracle data marked *degraded* is observable but flagged as unsafe  
+• Oracle failures still do not degrade RuntimeHealth  
+• Reconciliation failures are logged, not acted upon  
+
+---
+
+**Constraints:**
+• No execution of trades  
+• No strategy logic  
+• No aggregation across multiple oracles  
+• No fallback or redundancy  
+• No capital or risk decisions  
+• No caching or smoothing  
+
+---
+
+**Non-Goals:**
+• No prediction or forecasting  
+• No oracle ranking  
+• No cross-oracle consensus  
+• No price normalization  
+• No execution gating yet  
+
+---
+
+**Outcome:**
+The system can distinguish between:
+• what the chain reports,
+• what an oracle claims,
+• and whether that claim is currently trustworthy relative to on-chain reality.
+
+This phase establishes the trust boundary required before any execution logic can safely exist.
+
+---
