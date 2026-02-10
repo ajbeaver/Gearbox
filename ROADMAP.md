@@ -112,82 +112,28 @@ This establishes the foundation for chain-oracle reconciliation in Phase 5.
 
 ---
 
-## Phase 5 — Chain–Oracle Reconciliation (Trust Gating)
-
-Status: PLANNED
+## Phase 5 — Chain–Oracle Reconciliation (COMPLETE)
 
 **Goal:**  
-Determine whether externally sourced oracle data is *usable right now* by reconciling it against on-chain orientation data.
-
-This phase introduces the concept of **conditional trust** without enabling execution.
-
----
-
-**Inputs:**
-• Chain orientation snapshot (Phase 3)  
-• Oracle snapshot (Phase 4)
-
----
+Determine whether external oracle data is temporally consistent with on-chain state.
 
 **Delivered:**
-• New reconciliation step executed once per evaluation tick  
-• Deterministic comparison between chain and oracle data  
-• Explicit trust classification for oracle output  
-• Structured logging of reconciliation decisions and failures  
-
----
-
-**Reconciliation Checks (Minimum Set):**
-• Oracle timestamp vs chain block timestamp  
-• Oracle staleness relative to chain time (configurable threshold)  
-• Oracle latency stability across ticks  
-• Price validity checks (non-null, non-zero, finite)  
-
----
-
-**Outputs:**
-• Reconciled oracle state with explicit trust status:
-  – trusted
-  – degraded
-  – rejected
-• Reason codes explaining reconciliation outcomes  
-• No mutation of original chain or oracle snapshots  
-
----
-
-**Behavioral Rules:**
-• Oracle data marked *rejected* must not be consumed by downstream logic  
-• Oracle data marked *degraded* is observable but flagged as unsafe  
-• Oracle failures still do not degrade RuntimeHealth  
-• Reconciliation failures are logged, not acted upon  
-
----
-
-**Constraints:**
-• No execution of trades  
-• No strategy logic  
-• No aggregation across multiple oracles  
-• No fallback or redundancy  
-• No capital or risk decisions  
-• No caching or smoothing  
-
----
+• Normalized timestamps across chain and oracle snapshots (`timestamp_epoch`)  
+• New reconciliation engine producing a deterministic comparison per tick  
+• Computed time delta (`delta_sec`) between chain and oracle observations  
+• Configurable tolerance threshold (`runtime.reconciliation.max_time_skew_sec`)  
+• Explicit reconciliation status output (`ok` | `degraded`)  
+• Structured reconciliation logs with auditable fields  
+• Health system records reconciliation degradation as a warning without altering control flow  
 
 **Non-Goals:**
-• No prediction or forecasting  
-• No oracle ranking  
-• No cross-oracle consensus  
-• No price normalization  
-• No execution gating yet  
+• No execution gating  
+• No halting or pausing based on reconciliation  
+• No oracle trust scoring  
+• No multi-oracle comparison  
+• No price validation or correctness checks  
 
----
-
-**Outcome:**
-The system can distinguish between:
-• what the chain reports,
-• what an oracle claims,
-• and whether that claim is currently trustworthy relative to on-chain reality.
-
-This phase establishes the trust boundary required before any execution logic can safely exist.
+**Outcome:**  
+The runtime can explicitly detect and measure temporal disagreement between on-chain truth and external oracle claims, exposing this as a first-class signal while preserving full operational continuity.
 
 ---
