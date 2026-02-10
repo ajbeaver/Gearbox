@@ -34,6 +34,7 @@ def collect_chain_orientation(chain_name, chain_cfg):
         "block_timestamp": None,
         "gas_price": None,
         "observed_at": observed_at,
+        "timestamp_epoch": None,
         "success": False,
         "failure_reason": None,
     }
@@ -81,6 +82,7 @@ def collect_chain_orientation(chain_name, chain_cfg):
 
     snapshot["block_height"] = int(block_number_hex, 16)
     snapshot["block_timestamp"] = int(block_timestamp_hex, 16)
+    snapshot["timestamp_epoch"] = snapshot["block_timestamp"]
     snapshot["gas_price"] = int(gas_price_hex, 16)
     snapshot["success"] = True
 

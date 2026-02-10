@@ -2,6 +2,7 @@ import os
 import time
 import datetime
 import sys
+import json
 import logging
 import argparse
 from pathlib import Path
@@ -9,6 +10,7 @@ from gearbox.validate import validate
 from gearbox.engine.market_data import evaluate_chain
 from gearbox.engine.chain_orientation import collect_chain_orientation
 from gearbox.engine.oracle import collect_oracle_snapshot
+from gearbox.engine.reconciliation import reconcile
 from gearbox.health import RuntimeHealth
 
 BANNER = r"""
@@ -43,6 +45,23 @@ class GearboxArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         print(f"[!] Invalid arguments: {message}")
         sys.exit(EXIT_INVALID_ARGS)
+
+# Logging
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        payload = {
+            "timestamp": datetime.datetime.utcfromtimestamp(record.created).isoformat() + "Z",
+            "level": record.levelname,
+            "message": record.getMessage(),
+        }
+
+        if hasattr(record, "data"):
+            payload["data"] = record.data
+
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+
+        return json.dumps(payload, indent=2, sort_keys=False)
 
 # Argument Parsing
 def parse_args():
@@ -106,6 +125,7 @@ def run(validated_config):
     health = RuntimeHealth()
     runtime_cfg = validated_config["parsed"]["runtime.yaml"]["runtime"]
     oracle_cfg = validated_config["parsed"]["oracle.yaml"]["oracle"]
+    reconciliation_cfg = runtime_cfg.get("reconciliation", {})
 
     evaluation_interval = runtime_cfg["evaluation_interval_sec"]
     max_runtime = runtime_cfg["max_runtime_sec"]
@@ -124,6 +144,7 @@ def run(validated_config):
         runtime_state["last_tick_time"] = now
 
         elapsed = (now - runtime_state["start_time"]).total_seconds()
+        last_chain_snapshot = None
 
         logging.info(
             f"Heartbeat | tick={runtime_state['tick_count']} | elapsed={int(elapsed)}s | interval={evaluation_interval}s"
@@ -141,24 +162,31 @@ def run(validated_config):
             result = evaluate_chain(chain_name, chain_defs[chain_name])
 
             if result["reachable"]:
-                logging.info(f"Chain reachable: {result}")
+                logging.info("Chain reachable", extra={"data": result})
                 orientation = collect_chain_orientation(chain_name, chain_defs[chain_name])
                 if orientation["success"]:
-                    logging.info(f"Chain orientation: {orientation}")
+                    logging.info("Chain orientation", extra={"data": orientation})
+                    last_chain_snapshot = orientation
                 else:
-                    logging.warning(f"Chain orientation failed: {orientation}")
+                    logging.warning("Chain orientation failed", extra={"data": orientation})
                     evaluation_failed = True
                     failure_reason = f"Chain orientation failed: {chain_name}"
             else:
-                logging.warning(f"Chain unreachable: {result}")
+                logging.warning("Chain unreachable", extra={"data": result})
                 evaluation_failed = True
                 failure_reason = f"Chain unreachable: {chain_name}"
 
         oracle_snapshot = collect_oracle_snapshot(oracle_cfg)
         if oracle_snapshot["success"]:
-            logging.info(f"Oracle snapshot: {oracle_snapshot}")
+            logging.info("Oracle snapshot", extra={"data": oracle_snapshot})
         else:
-            logging.warning(f"Oracle snapshot failed: {oracle_snapshot}")
+            logging.warning("Oracle snapshot failed", extra={"data": oracle_snapshot})
+
+        if last_chain_snapshot is not None:
+            reconciliation = reconcile(last_chain_snapshot, oracle_snapshot, reconciliation_cfg)
+            logging.info("Reconciliation", extra={"data": reconciliation})
+            if reconciliation["status"] == "degraded":
+                health.record_warning("oracle_time_skew")
 
         if evaluation_failed:
             health.record_failure(failure_reason)
@@ -171,14 +199,14 @@ def run(validated_config):
         if health.should_halt():
             health.enter_halt()
             logging.error("Health halt condition met — halting runtime")
-            logging.info(f"Final health snapshot: {health.snapshot()}")
+            logging.info("Final health snapshot", extra={"data": health.snapshot()})
             print("[!] Runtime halted due to health failure. See log for details.")
             break
 
         if health.should_pause():
             health.enter_pause()
             logging.warning("Health pause condition met — entering paused state")
-            logging.info(f"Paused health snapshot: {health.snapshot()}")
+            logging.info("Paused health snapshot", extra={"data": health.snapshot()})
             print("[!] Runtime paused due to health degradation.")
             pause_interval = evaluation_interval * 2
             logging.info(f"Paused — sleeping for {pause_interval}s before recheck")
@@ -194,7 +222,7 @@ def run(validated_config):
             # Skip remainder of loop and re-evaluate health next tick
             continue
 
-        logging.info(f"Health snapshot: {health.snapshot()}")
+        logging.info("Health snapshot", extra={"data": health.snapshot()})
 
         logging.info("Evaluation phase complete")
 
@@ -218,19 +246,22 @@ def main():
     run_timestamp = get_run_timestamp()
     logfile = os.path.join(LOGDIR, f"cli-{run_timestamp}.log")
 
-    logging.basicConfig(
-        filename=logfile,
-        level=logging.INFO,
-        format="%(asctime)s | %(levelname)s | %(message)s"
-    )
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.handlers = []
+
+    json_formatter = JsonFormatter()
+
+    file_handler = logging.FileHandler(logfile)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(json_formatter)
+    root_logger.addHandler(file_handler)
 
     if args.verbose:
         console = logging.StreamHandler(sys.stderr)
         console.setLevel(logging.INFO)
-        console.setFormatter(logging.Formatter(
-            "%(asctime)s | %(levelname)s | %(message)s"
-        ))
-        logging.getLogger().addHandler(console)
+        console.setFormatter(json_formatter)
+        root_logger.addHandler(console)
 
     print_banner()
     logging.info("CLI startup")

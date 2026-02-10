@@ -70,6 +70,7 @@ def validate(config_dir):
                 "evaluation_interval_sec": int,
                 "max_runtime_sec": int,
                 "strict_validation": bool,
+                "reconciliation": dict,
             }
 
             for field, expected_type in required_fields.items():
@@ -78,6 +79,17 @@ def validate(config_dir):
                 elif not isinstance(runtime[field], expected_type):
                     errors.append(
                         f"runtime.yaml field '{field}' must be of type {expected_type}"
+                    )
+
+            reconciliation = runtime.get("reconciliation")
+            if isinstance(reconciliation, dict):
+                if "max_time_skew_sec" not in reconciliation:
+                    errors.append(
+                        "runtime.yaml reconciliation missing required field: 'max_time_skew_sec'"
+                    )
+                elif not isinstance(reconciliation["max_time_skew_sec"], int):
+                    errors.append(
+                        "runtime.yaml reconciliation field 'max_time_skew_sec' must be of type int"
                     )
 
     if "strategies.yaml" in parsed:

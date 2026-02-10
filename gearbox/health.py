@@ -11,6 +11,7 @@ class RuntimeHealth:
         # Counters
         self.total_checks = 0
         self.consecutive_failures = 0
+        self.total_warnings = 0
 
         # Status flags
         self.healthy = True
@@ -19,6 +20,7 @@ class RuntimeHealth:
 
         # Last error context (human readable)
         self.last_error = None
+        self.last_warning = None
 
     def record_success(self):
         """Call when an evaluation cycle succeeds."""
@@ -39,6 +41,12 @@ class RuntimeHealth:
         self.consecutive_failures += 1
         self.last_error = error_msg
         self.healthy = False
+        self.last_warning = None
+
+    def record_warning(self, warning_msg: str):
+        """Call when a non-fatal health issue is detected."""
+        self.total_warnings += 1
+        self.last_warning = warning_msg
 
     def should_pause(self) -> bool:
         """
@@ -83,5 +91,7 @@ class RuntimeHealth:
             "halted": self.halted,
             "total_checks": self.total_checks,
             "consecutive_failures": self.consecutive_failures,
+            "total_warnings": self.total_warnings,
             "last_error": self.last_error,
+            "last_warning": self.last_warning,
         }

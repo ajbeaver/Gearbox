@@ -21,6 +21,18 @@ def _parse_http_date(date_header: str):
         parsed = parsed.replace(tzinfo=datetime.timezone.utc)
     return parsed.astimezone(datetime.timezone.utc)
 
+def _parse_iso_utc_z_to_epoch(timestamp_str: str):
+    if not timestamp_str or not isinstance(timestamp_str, str):
+        return None
+    try:
+        normalized = timestamp_str.replace("Z", "+00:00")
+        parsed = datetime.datetime.fromisoformat(normalized)
+    except Exception:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return int(parsed.timestamp())
+
 
 def collect_oracle_snapshot(oracle_cfg: dict) -> dict:
     provider = oracle_cfg.get("provider")
@@ -31,12 +43,13 @@ def collect_oracle_snapshot(oracle_cfg: dict) -> dict:
     observed_at = _format_utc_z(datetime.datetime.utcnow())
 
     snapshot = {
+        "source": provider,
         "asset": asset_pair,
         "price": None,
-        "source": provider,
+        "latency_ms": None,
         "observed_at": observed_at,
         "source_timestamp": observed_at,
-        "latency_ms": None,
+        "timestamp_epoch": None,
         "success": False,
         "failure_reason": None,
     }
@@ -69,6 +82,11 @@ def collect_oracle_snapshot(oracle_cfg: dict) -> dict:
     parsed_date = _parse_http_date(date_header)
     if parsed_date is not None:
         snapshot["source_timestamp"] = _format_utc_z(parsed_date)
+
+    snapshot["timestamp_epoch"] = (
+        _parse_iso_utc_z_to_epoch(snapshot["source_timestamp"])
+        or _parse_iso_utc_z_to_epoch(snapshot["observed_at"])
+    )
 
     try:
         price = data["data"]["amount"]
